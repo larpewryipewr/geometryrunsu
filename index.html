@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#090817">
+<meta name="description" content="GEOMETRYRUNSU! — неоновый раннер с ритм-нотами и комбо.">
+<title>GEOMETRYRUNSU! — rhythm runner</title>
+<style>
+:root{color-scheme:dark;--bg:#090817;--panel:#15132a;--line:#302b55;--cyan:#4cecff;--pink:#ff4cb8;--lime:#c8ff55;--muted:#a9a4c7}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -20%,#2c1e57 0%,#111027 38%,#090817 75%);color:#fff;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;display:flex;justify-content:center;padding:clamp(12px,3vw,34px);overflow-x:hidden}
+.app{width:min(1120px,100%);margin:auto}
+.top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:13px}
+.logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,var(--cyan),#8d67ff 58%,var(--pink));display:grid;place-items:center;box-shadow:0 0 28px #5feaff42;transform:rotate(-7deg)}
+.logo svg{width:27px;height:27px}
+h1{font-size:clamp(19px,3vw,29px);letter-spacing:.04em;margin:0;font-weight:950}
+h1 span{color:var(--cyan)}
+.subtitle{color:var(--muted);font-size:12px;letter-spacing:.16em;text-transform:uppercase;margin-top:3px}
+.pill{border:1px solid #ffffff20;border-radius:999px;padding:8px 13px;color:#d4d0f0;font-size:12px;background:#ffffff08;white-space:nowrap}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.stat{background:linear-gradient(145deg,#191630d9,#100f20d9);border:1px solid #ffffff12;border-radius:15px;padding:12px 15px;min-width:0}
+.stat small{display:block;color:var(--muted);font-size:10px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:5px}
+.stat strong{font-size:clamp(17px,2.5vw,25px);font-variant-numeric:tabular-nums;letter-spacing:.03em}
+#combo{color:var(--lime)}#accuracy{color:var(--cyan)}
+.stage{position:relative;border:1px solid #8a75ff44;border-radius:22px;overflow:hidden;background:#0b0b1c;box-shadow:0 24px 80px #0008,0 0 35px #765aff18}
+canvas{display:block;width:100%;height:auto;aspect-ratio:1000/520;touch-action:manipulation}
+.overlay{position:absolute;inset:0;display:grid;place-items:center;background:linear-gradient(90deg,#090817c9,#0d0b1bc9);backdrop-filter:blur(7px);padding:20px;text-align:center;transition:opacity .2s}
+.overlay.hidden{opacity:0;pointer-events:none}
+.modal{max-width:520px}
+.eyebrow{font-size:11px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--cyan);margin-bottom:10px}
+.modal h2{font-size:clamp(27px,5vw,48px);line-height:1;margin:0 0 12px;font-weight:1000;letter-spacing:-.04em}
+.modal h2 em{font-style:normal;color:var(--pink)}
+.modal p{color:#c3bfdc;line-height:1.55;margin:0 auto 20px;max-width:430px;font-size:14px}
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+button{font:inherit;cursor:pointer;border:0;color:#090817;font-weight:900;border-radius:12px;padding:12px 19px;background:linear-gradient(110deg,var(--cyan),#9af6ff);box-shadow:0 6px 24px #4cecff30;transition:transform .12s,filter .12s}
+button:hover{filter:brightness(1.09);transform:translateY(-1px)}
+button:active{transform:translateY(1px)}
+button.secondary{color:#eeeaff;background:#ffffff0b;border:1px solid #ffffff22;box-shadow:none}
+.hudline{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 15px;background:#100f20;border-top:1px solid #ffffff12;color:#b9b4d7;font-size:12px}
+#status{color:var(--cyan);font-weight:800;letter-spacing:.08em}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.control{background:#17152b;border:1px solid #ffffff16;border-radius:15px;padding:12px 15px;display:flex;align-items:center;gap:12px;color:#cbc7e1;font-size:12px}
+.key{flex:none;min-width:37px;text-align:center;padding:7px 9px;border-radius:8px;background:#272440;border:1px solid #ffffff20;color:#fff;font-weight:900}
+.mobile-controls{display:none;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.mobile-controls button{padding:15px;border-radius:14px}
+.footer{display:flex;justify-content:space-between;gap:15px;color:#77728f;font-size:11px;margin-top:17px}
+@media(max-width:650px){body{padding:13px}.top{align-items:flex-start}.pill{display:none}.stats{gap:6px}.stat{padding:9px 10px;border-radius:12px}.stat small{font-size:9px}.hudline{font-size:10px;padding:10px}.controls{grid-template-columns:1fr 1fr}.control{padding:10px;font-size:10px;gap:8px}.mobile-controls{display:grid}.footer{font-size:10px;flex-direction:column;gap:5px}.logo{width:40px;height:40px}.brand{gap:10px}}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 18 12 4l8 14H4Z" stroke="#101022" stroke-width="2.7" stroke-linejoin="round"/><path d="M9 15h6" stroke="#101022" stroke-width="2.3" stroke-linecap="round"/></svg></div>
+      <div><h1>GEOMETRY<span>RUNSU!</span></h1><div class="subtitle">dash × rhythm × runner</div></div>
+    </div>
+    <div class="pill">✦ ORIGINAL RHYTHM RUNNER</div>
+  </header>
+
+  <section class="stats" aria-label="Статистика">
+    <div class="stat"><small>Очки</small><strong id="score">000000</strong></div>
+    <div class="stat"><small>Комбо</small><strong id="combo">×0</strong></div>
+    <div class="stat"><small>Точность</small><strong id="accuracy">—</strong></div>
+    <div class="stat"><small>Рекорд</small><strong id="best">000000</strong></div>
+  </section>
+
+  <section class="stage">
+    <canvas id="game" width="1000" height="520" aria-label="Игровое поле GeometryRunsu"></canvas>
+    <div class="overlay" id="overlay">
+      <div class="modal">
+        <div class="eyebrow" id="eyebrow">ONE GAME · THREE GENRES</div>
+        <h2 id="modalTitle">RUN TO THE <em>BEAT.</em></h2>
+        <p id="modalText">Прыгай через шипы в стиле Geometry Dash и лови ритм-ноты точно в такт. Чем длиннее серия попаданий — тем выше множитель очков!</p>
+        <div class="actions">
+          <button id="mainButton">▶ ИГРАТЬ</button>
+          <button class="secondary" id="soundButton">♫ ЗВУК: ВКЛ</button>
+        </div>
+      </div>
+    </div>
+    <div class="hudline"><span id="status">ГОТОВ К ЗАПУСКУ</span><span id="bpm">♪ 112 BPM</span><span id="progress">0 m</span></div>
+  </section>
+
+  <div class="mobile-controls">
+    <button id="jumpButton">⬆ ПРЫЖОК</button>
+    <button id="hitButton" class="secondary">● HIT / НОТА</button>
+  </div>
+
+  <section class="controls">
+    <div class="control"><span class="key">SPACE</span><span>Прыжок через препятствия</span></div>
+    <div class="control"><span class="key">F</span><span>Попасть в ноту на линии</span></div>
+    <div class="control"><span class="key">P</span><span>Пауза / продолжить</span></div>
+    <div class="control"><span class="key">CLICK</span><span>Нажми ноту или прыгни</span></div>
+  </section>
+  <footer class="footer"><span>GEOMETRYRUNSU! · версия 0.1 · без сторонних библиотек</span><span>Сделано для хорошего тайминга ✦</span></footer>
+</main>
+<script>
+(function(){
+"use strict";
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+const W=canvas.width,H=canvas.height,ground=H-82,playerX=168,targetX=365;
+const $=id=>document.getElementById(id);
+const ui={score:$("score"),combo:$("combo"),accuracy:$("accuracy"),best:$("best"),overlay:$("overlay"),title:$("modalTitle"),text:$("modalText"),eyebrow:$("eyebrow"),main:$("mainButton"),sound:$("soundButton"),status:$("status"),progress:$("progress")};
+let state="ready",score=0,combo=0,best=0,perfects=0,goods=0,misses=0,attempts=0,distance=0,speed=390,bpm=112;
+let player={y:ground-36,vy:0,size:36,rot:0,grounded:true};
+let obstacles=[],notes=[],particles=[],stars=[];
+let obstacleTimer=1.5,noteTimer=.65,beatClock=0,lastTime=0,runTime=0,screenShake=0;
+let soundOn=true,audio=null,beatIndex=0;
+try{best=Number(localStorage.getItem("gr_best")||0)}catch(e){}
+ui.best.textContent=fmt(best);
+for(let i=0;i<80;i++)stars.push({x:Math.random()*W,y:Math.random()*(H-100),s:Math.random()*2+.5,a:Math.random()*.55+.12});
+function fmt(n){return Math.floor(n).toString().padStart(6,"0")}
+function audioCtx(){if(!soundOn)return null;try{if(!audio){const AC=window.AudioContext||window.webkitAudioContext;if(AC)audio=new AC()}if(audio&&audio.state==="suspended")audio.resume();return audio}catch(e){return null}}
+function tone(freq,dur,type,vol){const a=audioCtx();if(!a)return;try{const o=a.createOscillator(),g=a.createGain();o.type=type||"sine";o.frequency.value=freq;g.gain.setValueAtTime(vol||.035,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+dur);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+dur)}catch(e){}}
+function start(){
+  if(state==="running")return;
+  state="running";score=0;combo=0;perfects=0;goods=0;misses=0;attempts=0;distance=0;speed=390;runTime=0;
+  player={y:ground-36,vy:0,size:36,rot:0,grounded:true};
+  obstacles=[];notes=[];particles=[];obstacleTimer=1.15;noteTimer=.55;beatClock=0;beatIndex=0;screenShake=0;
+  ui.overlay.classList.add("hidden");ui.status.textContent="● LIVE";ui.main.textContent="↻ ЗАНОВО";lastTime=performance.now();audioCtx();updateStats();requestAnimationFrame(loop);
+}
+function pause(){
+  if(state==="running"){state="paused";showOverlay("ПАУЗА","НЕМНОГО <em>ОТДОХНИ.</em>","Нажми продолжить, когда будешь готов. Твой прогресс сохранён.", "▶ ПРОДОЛЖИТЬ","PAUSED")}
+  else if(state==="paused"){state="running";ui.overlay.classList.add("hidden");lastTime=performance.now();requestAnimationFrame(loop)}
+}
+function showOverlay(title,text,desc,button,eyebrow){ui.title.innerHTML=title;ui.text.textContent=desc;ui.eyebrow.textContent=eyebrow;ui.main.textContent=button;ui.overlay.classList.remove("hidden")}
+function jump(){
+ if(state!=="running"||!player.grounded)return;
+ player.vy=-690;player.grounded=false;player.rot=0;tone(250,.09,"square",.025);
+ burst(playerX+18,player.y+35,"#4cecff",7);
+}
+function hitNote(){
+ if(state!=="running")return;
+ let nearest=null,dist=Infinity;
+ for(const n of notes){if(n.hit||n.missed)continue;const d=Math.abs(n.x-targetX);if(d<dist){dist=d;nearest=n}}
+ if(!nearest||dist>82){tone(120,.05,"sawtooth",.012);return}
+ nearest.hit=true;attempts++;
+ const t=dist/speed;
+ let grade=t<.045?"PERFECT":t<.105?"GREAT":"GOOD";
+ if(grade==="PERFECT"){perfects++;score+=300+combo*8;tone(880,.12,"sine",.05);burst(nearest.x,nearest.y,"#c8ff55",17)}
+ else if(grade==="GREAT"){goods++;score+=200+combo*5;tone(660,.1,"sine",.04);burst(nearest.x,nearest.y,"#4cecff",12)}
+ else{goods++;score+=100+combo*3;tone(520,.08,"sine",.035);burst(nearest.x,nearest.y,"#ff4cb8",9)}
+ combo++;nearest.grade=grade;nearest.life=0;
+ updateStats();
+}
+function burst(x,y,color,count){for(let i=0;i<count;i++){const a=Math.random()*Math.PI*2,v=70+Math.random()*260;particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:.45+Math.random()*.4,color,size:2+Math.random()*3})}}
+function fail(){
+ if(state!=="running")return;state="over";screenShake=12;tone(95,.35,"sawtooth",.05);
+ if(score>best){best=score;try{localStorage.setItem("gr_best",String(best))}catch(e){}}
+ ui.best.textContent=fmt(best);ui.status.textContent="✕ RUN OVER";
+ const acc=attempts?Math.round((perfects+goods)/attempts*100):0;
+ showOverlay("RUN <em>OVER.</em>","ПОПРОБУЙ ЕЩЁ РАЗ","Счёт: "+fmt(score)+" · точность: "+(attempts?acc+"%":"—")+" · комбо: ×"+combo+". Ещё один забег — и побьёшь рекорд!","↻ ПОВТОРИТЬ","TRY AGAIN");
+}
+function updateStats(){
+ ui.score.textContent=fmt(score);ui.combo.textContent="×"+combo;
+ const judged=perfects+goods+misses;
+ ui.accuracy.textContent=attempts?(Math.round((perfects+goods)/Math.max(1,attempts+misses)*100))+"%":"—";
+}
+function missNote(n){n.missed=true;misses++;combo=0;score=Math.max(0,score-40);tone(145,.07,"triangle",.018);updateStats()}
+function spawnObstacle(){const h=34+Math.random()*24,w=34+Math.random()*10;obstacles.push({x:W+30,w,h,passed:false,kind:Math.random()<.78?"spike":"block"})}
+function spawnNote(){const ys=[190,250,310];notes.push({x:W+30,y:ys[Math.floor(Math.random()*ys.length)],hit:false,missed:false,life:0,grade:""});}
+function update(dt){
+ runTime+=dt;distance+=speed*dt/100;speed=Math.min(570,390+runTime*3.1);
+ score+=Math.floor(dt*9);
+ player.vy+=1770*dt;player.y+=player.vy*dt;
+ if(player.y>=ground-player.size){player.y=ground-player.size;player.vy=0;player.grounded=true}
+ if(!player.grounded)player.rot+=dt*5.2;else player.rot+=(0-player.rot)*Math.min(1,dt*12);
+ obstacleTimer-=dt;if(obstacleTimer<=0){spawnObstacle();obstacleTimer=1.28+Math.random()*.72-(speed-390)/900}
+ noteTimer-=dt;if(noteTimer<=0){spawnNote();noteTimer=(60/bpm)*2.1}
+ beatClock+=dt;const beat=60/bpm;if(beatClock>=beat){beatClock-=beat;beatIndex++;if(beatIndex%2===0)tone(beatIndex%8===0?180:125,.045,"sine",.012)}
+ for(const o of obstacles){o.x-=speed*dt;if(!o.passed&&o.x+o.w<playerX){o.passed=true;score+=75;combo++;burst(playerX+15,ground-6,"#c8ff55",4)}}
+ obstacles=obstacles.filter(o=>o.x>-80);
+ for(const n of notes){n.x-=speed*dt;if(!n.hit&&!n.missed&&n.x<targetX-86)missNote(n);if(n.hit)n.life+=dt}
+ notes=notes.filter(n=>n.x>-70&&(!n.hit||n.life<.48));
+ for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=430*dt;p.life-=dt}
+ particles=particles.filter(p=>p.life>0);
+ for(const s of stars){s.x-=s.s*speed*dt*.05;if(s.x<0)s.x=W}
+ // collision: compact cube against each obstacle
+ const px=playerX+5,py=player.y+5,pw=player.size-10,ph=player.size-8;
+ for(const o of obstacles){
+   const ox=o.x+4,ow=o.w-8,oh=o.h-(o.kind==="spike"?5:0),oy=ground-oh;
+   if(px<ox+ow-5&&px+pw>ox+5&&py+ph>oy+5){fail();return}
+ }
+ ui.progress.textContent=Math.floor(distance)+" m";updateStats();
+}
+function draw(){
+ ctx.clearRect(0,0,W,H);
+ const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,"#10102a");bg.addColorStop(.7,"#101027");bg.addColorStop(1,"#17132d");ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+ // distant neon skyline and starfield
+ for(const s of stars){ctx.globalAlpha=s.a;ctx.fillStyle="#a6eaff";ctx.fillRect(s.x,s.y,s.s,s.s)}ctx.globalAlpha=1;
+ ctx.strokeStyle="#6357a8";ctx.globalAlpha=.13;ctx.lineWidth=1;
+ for(let x=0;x<W;x+=48){ctx.beginPath();ctx.moveTo(x,70);ctx.lineTo(x,ground);ctx.stroke()}
+ for(let y=110;y<ground;y+=48){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}ctx.globalAlpha=1;
+ // rhythm lane
+ ctx.fillStyle="#171533";ctx.fillRect(0,150,W,205);
+ ctx.strokeStyle="#3a326c";ctx.lineWidth=1;ctx.setLineDash([5,10]);ctx.beginPath();ctx.moveTo(0,352);ctx.lineTo(W,352);ctx.stroke();ctx.setLineDash([]);
+ ctx.strokeStyle="#4cecff";ctx.globalAlpha=.7;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(targetX,145);ctx.lineTo(targetX,358);ctx.stroke();ctx.globalAlpha=1;
+ ctx.fillStyle="#4cecff";ctx.font="800 11px system-ui";ctx.textAlign="center";ctx.fillText("HIT LINE",targetX,135);
+ // ground and moving stripes
+ ctx.fillStyle="#191532";ctx.fillRect(0,ground,W,H-ground);
+ ctx.fillStyle="#29234c";ctx.fillRect(0,ground,W,5);
+ ctx.fillStyle="#26204a";
+ const offset=(runTime*speed*.55)%54;
+ for(let x=-54+offset;x<W;x+=54){ctx.beginPath();ctx.moveTo(x,ground+7);ctx.lineTo(x+27,ground+7);ctx.lineTo(x+42,ground+22);ctx.lineTo(x+15,ground+22);ctx.closePath();ctx.fill()}
+ // glow at floor
+ const glow=ctx.createLinearGradient(0,ground-25,0,ground+12);glow.addColorStop(0,"#4cecff00");glow.addColorStop(1,"#4cecff20");ctx.fillStyle=glow;ctx.fillRect(0,ground-25,W,30);
+ // obstacles
+ for(const o of obstacles){ctx.save();ctx.shadowBlur=18;ctx.shadowColor="#ff4cb8";ctx.fillStyle="#ff4cb8";if(o.kind==="spike"){ctx.beginPath();ctx.moveTo(o.x,ground);ctx.lineTo(o.x+o.w/2,ground-o.h);ctx.lineTo(o.x+o.w,ground);ctx.closePath();ctx.fill();ctx.strokeStyle="#ffd2ef";ctx.lineWidth=2;ctx.stroke()}else{ctx.fillRect(o.x,ground-o.h,o.w,o.h);ctx.strokeStyle="#ffd2ef";ctx.lineWidth=2;ctx.strokeRect(o.x,ground-o.h,o.w,o.h)}ctx.restore()}
+ // notes
+ for(const n of notes){if(n.hit||n.missed)continue;const near=Math.abs(n.x-targetX)<100;ctx.save();ctx.translate(n.x,n.y);ctx.shadowBlur=near?25:14;ctx.shadowColor=near?"#c8ff55":"#4cecff";ctx.strokeStyle=near?"#c8ff55":"#4cecff";ctx.lineWidth=5;ctx.beginPath();ctx.arc(0,0,17+Math.sin(runTime*7+n.y)*2,0,Math.PI*2);ctx.stroke();ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(0,0,5,0,Math.PI*2);ctx.fill();ctx.globalAlpha=.35;ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,28,0,Math.PI*2);ctx.stroke();ctx.restore()}
+ // player with a soft neon cube
+ ctx.save();ctx.translate(playerX+18,player.y+18);ctx.rotate(player.rot);ctx.shadowBlur=25;ctx.shadowColor="#4cecff";const cg=ctx.createLinearGradient(-18,-18,18,18);cg.addColorStop(0,"#b8ffff");cg.addColorStop(.45,"#4cecff");cg.addColorStop(1,"#826aff");ctx.fillStyle=cg;ctx.fillRect(-18,-18,36,36);ctx.strokeStyle="#fff";ctx.lineWidth=2.2;ctx.strokeRect(-18,-18,36,36);ctx.shadowBlur=0;ctx.fillStyle="#11112b";ctx.fillRect(-9,-5,5,7);ctx.fillRect(5,-5,5,7);ctx.fillStyle="#fff";ctx.fillRect(-8,-4,2,2);ctx.fillRect(6,-4,2,2);ctx.strokeStyle="#15152e";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-6,8);ctx.lineTo(6,8);ctx.stroke();ctx.restore();
+ // particles
+ for(const p of particles){ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,p.size,p.size)}ctx.globalAlpha=1;
+ // beat pulse
+ const pulse=1-(beatClock/(60/bpm));ctx.globalAlpha=.12+.15*pulse;ctx.strokeStyle="#4cecff";ctx.lineWidth=2;ctx.beginPath();ctx.arc(32,32,12+pulse*10,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;
+ ctx.fillStyle="#aaa5ce";ctx.font="700 11px system-ui";ctx.textAlign="left";ctx.fillText("SPEED "+Math.round(speed/3.9)+"%",20,490);
+ ctx.textAlign="right";ctx.fillStyle="#77719e";ctx.fillText("112 BPM  ·  KEEP THE BEAT",980,490);
+}
+function loop(now){
+ if(state!=="running")return;
+ const dt=Math.min(.034,Math.max(0,(now-lastTime)/1000));lastTime=now;update(dt);draw();
+ if(state==="running")requestAnimationFrame(loop);
+}
+function pointer(e){
+ const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height;
+ if(state!=="running")return;
+ let clicked=false;
+ for(const n of notes){if(!n.hit&&!n.missed&&Math.hypot(n.x-x,n.y-y)<48){hitNote();clicked=true;break}}
+ if(!clicked){if(x<W*.48)jump();else hitNote()}
+}
+canvas.addEventListener("pointerdown",pointer);
+window.addEventListener("keydown",e=>{
+ if(["Space","ArrowUp","KeyW","KeyF","KeyP"].includes(e.code))e.preventDefault();
+ if(e.repeat)return;
+ if(e.code==="Space"||e.code==="ArrowUp"||e.code==="KeyW"){if(state==="ready"||state==="over")start();else jump()}
+ if(e.code==="KeyF")hitNote();
+ if(e.code==="KeyP"||e.code==="Escape")pause();
+ if(e.code==="Enter"&&(state==="ready"||state==="over"))start();
+});
+$("jumpButton").addEventListener("pointerdown",e=>{e.preventDefault();if(state!=="running")start();else jump()});
+$("hitButton").addEventListener("pointerdown",e=>{e.preventDefault();if(state==="running")hitNote()});
+ui.main.addEventListener("click",()=>{if(state==="paused")pause();else start()});
+ui.sound.addEventListener("click",()=>{soundOn=!soundOn;ui.sound.textContent=soundOn?"♫ ЗВУК: ВКЛ":"♫ ЗВУК: ВЫКЛ";if(soundOn)audioCtx()});
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&state==="running")pause()});
+draw();updateStats();
+})();
+</script>
+</body>
+</html>
